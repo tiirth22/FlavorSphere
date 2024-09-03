@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home_page.dart'; // Import the HomePage file
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -7,6 +8,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool isSignUp = false;
+  bool _obscureTextPassword = true;
+  bool _obscureTextConfirmPassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -101,10 +104,21 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         SizedBox(height: 10),
         TextField(
-          obscureText: true,
+          obscureText: _obscureTextPassword,
           decoration: InputDecoration(
             labelText: 'Password',
             prefixIcon: Icon(Icons.lock),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureTextPassword ? Icons.visibility : Icons.visibility_off,
+                color: Colors.orange,
+              ),
+              onPressed: () {
+                setState(() {
+                  _obscureTextPassword = !_obscureTextPassword;
+                });
+              },
+            ),
           ),
         ),
         SizedBox(height: 10),
@@ -122,7 +136,13 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         SizedBox(height: 20),
         ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            // Navigate to HomePage on successful login
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          },
           child: Text('Login'),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.orange,
@@ -162,10 +182,40 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         SizedBox(height: 10),
         TextField(
-          obscureText: true,
+          obscureText: _obscureTextPassword,
           decoration: InputDecoration(
             labelText: 'Password',
             prefixIcon: Icon(Icons.lock),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureTextPassword ? Icons.visibility : Icons.visibility_off,
+                color: Colors.orange,
+              ),
+              onPressed: () {
+                setState(() {
+                  _obscureTextPassword = !_obscureTextPassword;
+                });
+              },
+            ),
+          ),
+        ),
+        SizedBox(height: 10),
+        TextField(
+          obscureText: _obscureTextConfirmPassword,
+          decoration: InputDecoration(
+            labelText: 'Confirm Password',
+            prefixIcon: Icon(Icons.lock),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureTextConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                color: Colors.orange,
+              ),
+              onPressed: () {
+                setState(() {
+                  _obscureTextConfirmPassword = !_obscureTextConfirmPassword;
+                });
+              },
+            ),
           ),
         ),
         SizedBox(height: 10),
@@ -177,7 +227,13 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         SizedBox(height: 20),
         ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            // Navigate to HomePage on successful sign-up
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          },
           child: Text('Sign up'),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.orange,
