@@ -6,93 +6,114 @@ class LoginScreen extends StatefulWidget {
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  bool isSignUp = false;
-  bool _obscureTextPassword = true;
-  bool _obscureTextConfirmPassword = true;
+class _LoginScreenState extends State<LoginScreen>
+{
+bool isSignUp = false;
+bool _obscureTextPassword = true;
+bool _obscureTextConfirmPassword = true;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.orange[100],
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                  height: 200,
-                  width: 200,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: AssetImage('assets/food_image.jpg'), // Example image asset
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                Card(
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isSignUp = false;
-                                });
-                              },
-                              child: Text(
-                                "Sign in",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSignUp ? Colors.black : Colors.orange,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 20),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isSignUp = true;
-                                });
-                              },
-                              child: Text(
-                                "Sign up",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSignUp ? Colors.orange : Colors.black,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
-                        isSignUp ? buildSignUpForm() : buildSignInForm(),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+@override
+Widget build(BuildContext context) {
+return Scaffold(
 
+// Remove background color
+backgroundColor: Colors.transparent,
+body: Stack( // Use Stack to position the image behind the content
+children: [
+// Background image container
+Container(
+decoration: BoxDecoration(
+image: DecorationImage(
+image: AssetImage('assets/images/background4.jpg'), // Replace with your image path
+fit: BoxFit.cover,
+
+),
+),
+),
+Center(
+child: SingleChildScrollView(
+
+child: Padding(
+padding: const EdgeInsets.all(20.0),
+child: Column(
+mainAxisAlignment: MainAxisAlignment.center,
+
+children: <Widget>[
+Container(
+height: 200,
+width: 200,
+decoration: BoxDecoration(
+shape: BoxShape.circle,
+image: DecorationImage(
+image: AssetImage('assets/images/logo.png'),
+// Example image asset
+fit: BoxFit.cover,
+),
+),
+),
+SizedBox(height: 20),
+Card(
+elevation: 8,
+shape: RoundedRectangleBorder(
+borderRadius: BorderRadius.circular(10),
+),
+child: Padding(
+padding: const EdgeInsets.all(20.0),
+
+child: Column(
+children: <Widget>[
+Row(
+mainAxisAlignment: MainAxisAlignment.center,
+children:
+[
+GestureDetector(
+onTap: () {
+setState(() {
+isSignUp = false;
+});
+},
+child: Text(
+"Sign in",
+style: TextStyle(
+fontSize: 18,
+fontWeight: FontWeight.bold,
+color: isSignUp ? Colors.black : Colors.orange,
+),
+),
+),
+SizedBox(width: 20),
+GestureDetector(
+onTap: () {
+setState(() {
+isSignUp = true;
+});
+},
+child: Text(
+"Sign up",
+style: TextStyle(
+fontSize: 18,
+fontWeight: FontWeight.bold,
+color: isSignUp ? Colors.orange : Colors.black,
+),
+),
+),
+],
+),
+SizedBox(height: 20),
+isSignUp ? buildSignUpForm() : buildSignInForm(),
+],
+),
+),
+),
+],
+),
+),
+),
+),
+],
+),
+);
+}
   Widget buildSignInForm() {
     return Column(
       children: <Widget>[
