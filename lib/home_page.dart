@@ -30,36 +30,38 @@ class HomePage extends StatelessWidget {
             ),
           ),
           // Main content
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Breakfast button with blurred image
-              BlurredButton(
-                imagePath: 'assets/images/breakfast.jpeg',
-                label: 'Breakfast',
-                onTap: () {
-                  // Handle Breakfast button tap
-                },
-              ),
-              SizedBox(height: 16),
-              // Lunch button with blurred image
-              BlurredButton(
-                imagePath: 'assets/images/lunch.jpeg',
-                label: 'Lunch',
-                onTap: () {
-                  // Handle Lunch button tap
-                },
-              ),
-              SizedBox(height: 16),
-              // Dinner button with blurred image
-              BlurredButton(
-                imagePath: 'assets/images/dinner.jpg',
-                label: 'Dinner',
-                onTap: () {
-                  // Handle Dinner button tap
-                },
-              ),
-            ],
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Breakfast button with blurred image
+                BlurredButton(
+                  imagePath: 'assets/images/breakfast.jpeg',
+                  label: 'Breakfast',
+                  onTap: () {
+                    // Handle Breakfast button tap
+                  },
+                ),
+                SizedBox(height: 50),
+                // Lunch button with blurred image
+                BlurredButton(
+                  imagePath: 'assets/images/lunch.jpeg',
+                  label: 'Lunch',
+                  onTap: () {
+                    // Handle Lunch button tap
+                  },
+                ),
+                SizedBox(height: 50),
+                // Dinner button with blurred image
+                BlurredButton(
+                  imagePath: 'assets/images/dinner.jpg',
+                  label: 'Dinner',
+                  onTap: () {
+                    // Handle Dinner button tap
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -107,7 +109,7 @@ class BlurredButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(12.0),
             child: Image.asset(
               imagePath,
-              width: 200,
+              width: MediaQuery.of(context).size.width * 0.8, // Adjust width to fit the screen
               height: 100,
               fit: BoxFit.cover,
             ),
@@ -118,7 +120,7 @@ class BlurredButton extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
               child: Container(
-                width: 200,
+                width: MediaQuery.of(context).size.width * 0.8, // Adjust width to fit the screen
                 height: 100,
                 color: Colors.black.withOpacity(0.4), // 40% blur effect
                 alignment: Alignment.center,
