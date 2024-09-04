@@ -52,7 +52,7 @@ class WelcomePage extends StatelessWidget {
                         MaterialPageRoute(builder: (context) => LoginScreen()),
                       );
                     },
-                    child: Text('Get Started'),
+                    child: Text('Start Cooking'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
