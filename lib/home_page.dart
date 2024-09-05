@@ -1,15 +1,45 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
+
+  static List<Widget> _widgetOptions = <Widget>[
+    HomeContent(), // Home content (current HomePage content)
+    SearchPage(),  // Search page
+    SavedPage(),   // Saved page
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Page'),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Image.asset('assets/images/logo.png'), // App logo on the top left
+        title: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.asset(
+                'assets/images/logo.png',
+                width: 40,
+                height: 40,
+              ), // App logo on the top left
+            ),
+            Text(
+              'Hello Chef!',
+              style: TextStyle(fontSize: 20, color: Colors.deepOrange),
+            ),
+          ],
         ),
         actions: [
           Padding(
@@ -20,54 +50,9 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          // Background image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/background4.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Main content
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Breakfast button with blurred image
-                BlurredButton(
-                  imagePath: 'assets/images/breakfast.jpeg',
-                  label: 'Breakfast',
-                  onTap: () {
-                    // Handle Breakfast button tap
-                  },
-                ),
-                SizedBox(height: 50),
-                // Lunch button with blurred image
-                BlurredButton(
-                  imagePath: 'assets/images/lunch.jpeg',
-                  label: 'Lunch',
-                  onTap: () {
-                    // Handle Lunch button tap
-                  },
-                ),
-                SizedBox(height: 50),
-                // Dinner button with blurred image
-                BlurredButton(
-                  imagePath: 'assets/images/dinner.jpg',
-                  label: 'Dinner',
-                  onTap: () {
-                    // Handle Dinner button tap
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      // Bottom Navigation Bar
+      body: _widgetOptions.elementAt(_selectedIndex), // Display the selected page
       bottomNavigationBar: BottomNavigationBar(
-        items: [
+        items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -78,10 +63,64 @@ class HomePage extends StatelessWidget {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bookmark),
-            label: 'Save',
+            label: 'Saved',
           ),
         ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.orange,
+        onTap: _onItemTapped,
       ),
+    );
+  }
+}
+
+class HomeContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Background image
+        Positioned.fill(
+          child: Image.asset(
+            'assets/images/background4.jpg',
+            fit: BoxFit.cover,
+          ),
+        ),
+        // Main content
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Breakfast button with blurred image
+              BlurredButton(
+                imagePath: 'assets/images/breakfast.jpeg',
+                label: 'Breakfast',
+                onTap: () {
+                  // Handle Breakfast button tap
+                },
+              ),
+              SizedBox(height: 50),
+              // Lunch button with blurred image
+              BlurredButton(
+                imagePath: 'assets/images/lunch.jpeg',
+                label: 'Lunch',
+                onTap: () {
+                  // Handle Lunch button tap
+                },
+              ),
+              SizedBox(height: 50),
+              // Dinner button with blurred image
+              BlurredButton(
+                imagePath: 'assets/images/dinner.jpg',
+                label: 'Dinner',
+                onTap: () {
+                  // Handle Dinner button tap
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -136,6 +175,31 @@ class BlurredButton extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// Placeholder pages for Search and Saved
+class SearchPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'Search Page',
+        style: TextStyle(fontSize: 24),
+      ),
+    );
+  }
+}
+
+class SavedPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'Saved Page',
+        style: TextStyle(fontSize: 24),
       ),
     );
   }
