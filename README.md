@@ -6,8 +6,11 @@ FlavorSphere is a nutrient and calorie tracking app that empowers users to make 
 
 ## Features 🎯:
 Nutrient and Calorie Tracking 🥗🍎: Track the nutrients and calories of recipes for healthier choices.
+
 User Accounts 👤: Manage profiles and save favorite recipes.
+
 Dark Mode 🌙: Seamless transition between light and dark themes.
+
 Firebase Authentication 🔒: Secure and simple user authentication.
 
 
