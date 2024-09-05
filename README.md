@@ -14,5 +14,6 @@ Dark Mode 🌙: Seamless transition between light and dark themes.
 Firebase Authentication 🔒: Secure and simple user authentication.
 
 
+
 This project is focused on learning Flutter in a fun, hands-on way while developing real-world application features. 🍽️📱
 
