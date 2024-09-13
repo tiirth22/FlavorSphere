@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Import Firebase core
-import 'login_screen.dart';
-import 'welcome.dart' show WelcomePage;
-import 'firebase_options.dart';
+import 'package:untitled2/welcome.dart';
+import 'home_page.dart';
+import 'user_profile_page.dart'; // Ensure you import the correct file
+import 'welcome.dart'; // Import your welcome page here
+import 'firebase_options.dart'; // Import Firebase options
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,13 +21,11 @@ void main() async {
         measurementId: "your-measurement-id",
       ),
     );
-  }else {
+  } else {
     await Firebase.initializeApp();
   }
-    runApp(MyApp());
-  }
-
-
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -36,7 +36,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.orange,
       ),
-      home: WelcomePage(),
+      initialRoute: '/welcome',
+      routes: {
+        '/welcome': (context) => WelcomePage(), // Your welcome page
+        '/home': (context) => HomePage(), // Your HomePage
+        '/userProfile': (context) => UserProfilePage(), // Your UserProfilePage
+      },
     );
   }
 }

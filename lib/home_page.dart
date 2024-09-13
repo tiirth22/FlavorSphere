@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'user_profile_page.dart'; // Import the User Profile Page
 
 class HomePage extends StatefulWidget {
   @override
@@ -44,8 +45,17 @@ class _HomePageState extends State<HomePage> {
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              backgroundImage: AssetImage('assets/images/user.png'), // User image on the top right
+            child: GestureDetector(
+              onTap: () {
+                // Navigate to the UserProfilePage when the user icon is tapped
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserProfilePage()),
+                );
+              },
+              child: CircleAvatar(
+                backgroundImage: AssetImage('assets/images/user.png'), // User image on the top right
+              ),
             ),
           ),
         ],
@@ -180,26 +190,78 @@ class BlurredButton extends StatelessWidget {
   }
 }
 
-// Placeholder pages for Search and Saved
+// Search page implementation
 class SearchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Search Page',
-        style: TextStyle(fontSize: 24),
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'Search Recipes',
+                border: OutlineInputBorder(),
+                suffixIcon: Icon(Icons.search),
+              ),
+            ),
+            SizedBox(height: 20),
+            Expanded(
+              child: ListView(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.food_bank),
+                    title: Text('Recipe 1'),
+                    subtitle: Text('Delicious recipe description...'),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.food_bank),
+                    title: Text('Recipe 2'),
+                    subtitle: Text('Tasty recipe description...'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
+// Saved page implementation
 class SavedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Saved Page',
-        style: TextStyle(fontSize: 24),
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Text(
+              'Saved Recipes',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            Expanded(
+              child: ListView(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.bookmark),
+                    title: Text('Saved Recipe 1'),
+                    subtitle: Text('Saved recipe description...'),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.bookmark),
+                    title: Text('Saved Recipe 2'),
+                    subtitle: Text('Favorite recipe description...'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
