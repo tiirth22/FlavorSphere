@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "274732030102",
+    "project_id": "flavorsphere-897b3",
+    "storage_bucket": "flavorsphere-897b3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:274732030102:android:799f4a2271fc7427d1cab7",
+        "android_client_info": {
+          "package_name": "com.example.untitled2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDb34TUTUBu7K_upjZk20zTlUwb3_I_0D8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
