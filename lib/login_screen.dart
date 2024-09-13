@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart'; // Import the HomePage
-import 'signup_screen.dart'; // Import the SignUpScreen
+import 'package:firebase_auth/firebase_auth.dart';
+import 'home_page.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -8,7 +9,10 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _auth = FirebaseAuth.instance;  // Firebase Authentication instance
   bool _obscureTextPassword = true;
+  String email = '';
+  String password = '';
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: 20),
                     GestureDetector(
                       onTap: () {
-                        // Navigate to SignUpScreen
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => SignUpScreen()),
+                          MaterialPageRoute(
+                              builder: (context) => SignUpScreen()),
                         );
                       },
                       child: Text(
@@ -90,20 +94,28 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       children: <Widget>[
         TextField(
+          onChanged: (value) {
+            email = value;
+          },
           decoration: InputDecoration(
-            labelText: 'Username',
-            prefixIcon: Icon(Icons.person),
+            labelText: 'Email',
+            prefixIcon: Icon(Icons.email),
           ),
         ),
         SizedBox(height: 10),
         TextField(
+          onChanged: (value) {
+            password = value;
+          },
           obscureText: _obscureTextPassword,
           decoration: InputDecoration(
             labelText: 'Password',
             prefixIcon: Icon(Icons.lock),
             suffixIcon: IconButton(
               icon: Icon(
-                _obscureTextPassword ? Icons.visibility : Icons.visibility_off,
+                _obscureTextPassword
+                    ? Icons.visibility
+                    : Icons.visibility_off,
                 color: Colors.orange,
               ),
               onPressed: () {
@@ -116,12 +128,20 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         SizedBox(height: 10),
         ElevatedButton(
-          onPressed: () {
-            // Navigate to HomePage after successful login
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomePage()),
-            );
+          onPressed: () async {
+            try {
+              await _auth.signInWithEmailAndPassword(
+                email: email,
+                password: password,
+              );
+              // Navigate to HomePage on success
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomePage()),
+              );
+            } catch (e) {
+              print(e);  // Handle error (e.g., show a message)
+            }
           },
           child: Text('Login'),
           style: ElevatedButton.styleFrom(

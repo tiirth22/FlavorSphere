@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; // Import the LoginScreen
-import 'home_page.dart';   // Import the HomePage
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'home_page.dart';
+import 'login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -9,8 +9,13 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  final _auth = FirebaseAuth.instance;  // Firebase Authentication instance
   bool _obscureTextPassword = true;
   bool _obscureTextConfirmPassword = true;
+  String name = '';
+  String email = '';
+  String phone = '';
+  String password = '';
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +23,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Background image container
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
@@ -63,10 +67,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     SizedBox(height: 20),
                     GestureDetector(
                       onTap: () {
-                        // Navigate to LoginScreen
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => LoginScreen()),
+                          MaterialPageRoute(
+                              builder: (context) => LoginScreen()),
                         );
                       },
                       child: Text(
@@ -92,6 +96,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       children: <Widget>[
         TextField(
+          onChanged: (value) {
+            name = value;
+          },
           decoration: InputDecoration(
             labelText: 'Name',
             prefixIcon: Icon(Icons.person),
@@ -99,6 +106,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         SizedBox(height: 10),
         TextField(
+          onChanged: (value) {
+            email = value;
+          },
           decoration: InputDecoration(
             labelText: 'Email',
             prefixIcon: Icon(Icons.email),
@@ -106,6 +116,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         SizedBox(height: 10),
         TextField(
+          onChanged: (value) {
+            phone = value;
+          },
           decoration: InputDecoration(
             labelText: 'Phone number',
             prefixIcon: Icon(Icons.phone),
@@ -113,6 +126,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         SizedBox(height: 10),
         TextField(
+          onChanged: (value) {
+            password = value;
+          },
           obscureText: _obscureTextPassword,
           decoration: InputDecoration(
             labelText: 'Password',
@@ -151,13 +167,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         SizedBox(height: 10),
         ElevatedButton(
-          onPressed: () {
-            // Handle sign-up logic here
-            // After sign-up is successful, navigate to HomePage
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomePage()),
-            );
+          onPressed: () async {
+            try {
+              // Register the user using FirebaseAuth
+              await _auth.createUserWithEmailAndPassword(
+                email: email,
+                password: password,
+              );
+              // Navigate to HomePage after successful sign-up
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomePage()),
+              );
+            } catch (e) {
+              print(e);  // Handle error (e.g., show a message)
+            }
           },
           child: Text('Sign up'),
           style: ElevatedButton.styleFrom(
