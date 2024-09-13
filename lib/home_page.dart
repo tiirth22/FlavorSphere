@@ -92,7 +92,7 @@ class HomeContent extends StatelessWidget {
         // Background image
         Positioned.fill(
           child: Image.asset(
-            'assets/images/background4.jpg',
+            'assets/images/background.jpg',
             fit: BoxFit.cover,
           ),
         ),
