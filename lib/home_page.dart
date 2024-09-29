@@ -1,6 +1,7 @@
-import 'dart:ui';
+import 'dart:ui'; // Import this for ImageFilter
 import 'package:flutter/material.dart';
-import 'user_profile_page.dart'; // Import the User Profile Page
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
+import 'api_service.dart'; // Import API Service for recipe search
 
 class HomePage extends StatefulWidget {
   @override
@@ -9,17 +10,31 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  final ApiService apiService = ApiService(); // Initialize ApiService for search
+  String searchQuery = '';
+  List<dynamic> _searchResults = [];
 
   static List<Widget> _widgetOptions = <Widget>[
-    HomeContent(), // Home content (current HomePage content)
-    SearchPage(),  // Search page
-    SavedPage(),   // Saved page
+    HomeContent(),  // Home content (Home page body)
+    SearchPage(),   // Search page
+    SavedPage(),    // Saved page
   ];
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _searchRecipes(String query) async {
+    try {
+      final results = await apiService.getRecipes(query);
+      setState(() {
+        _searchResults = results;
+      });
+    } catch (e) {
+      print('Error fetching recipes: $e');
+    }
   }
 
   @override
@@ -43,24 +58,22 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut(); // Sign out the user
+              Navigator.pushReplacementNamed(context, '/welcome'); // Redirect to login/signup screen
+            },
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: GestureDetector(
-              onTap: () {
-                // Navigate to the UserProfilePage when the user icon is tapped
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => UserProfilePage()),
-                );
-              },
-              child: CircleAvatar(
-                backgroundImage: AssetImage('assets/images/user.png'), // User image on the top right
-              ),
+            child: CircleAvatar(
+              backgroundImage: AssetImage('assets/images/user.png'), // User profile image
             ),
           ),
         ],
       ),
-      body: _widgetOptions.elementAt(_selectedIndex), // Display the selected page
+      body: _widgetOptions.elementAt(_selectedIndex), // Display selected page
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -92,7 +105,7 @@ class HomeContent extends StatelessWidget {
         // Background image
         Positioned.fill(
           child: Image.asset(
-            'assets/images/background.jpg',
+            'assets/images/background4.jpg',
             fit: BoxFit.cover,
           ),
         ),
@@ -158,7 +171,7 @@ class BlurredButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(12.0),
             child: Image.asset(
               imagePath,
-              width: MediaQuery.of(context).size.width * 0.8, // Adjust width to fit the screen
+              width: MediaQuery.of(context).size.width * 0.8, // Adjust width
               height: 100,
               fit: BoxFit.cover,
             ),
@@ -169,9 +182,9 @@ class BlurredButton extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.8, // Adjust width to fit the screen
+                width: MediaQuery.of(context).size.width * 0.8,
                 height: 100,
-                color: Colors.black.withOpacity(0.4), // 40% blur effect
+                color: Colors.black.withOpacity(0.4), // 40% opacity
                 alignment: Alignment.center,
                 child: Text(
                   label,
@@ -190,78 +203,76 @@ class BlurredButton extends StatelessWidget {
   }
 }
 
-// Search page implementation
-class SearchPage extends StatelessWidget {
+class SearchPage extends StatefulWidget {
+  @override
+  _SearchPageState createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<SearchPage> {
+  final ApiService apiService = ApiService();
+  String searchQuery = '';
+  List<dynamic> _searchResults = [];
+
+  void _searchRecipes(String query) async {
+    try {
+      final results = await apiService.getRecipes(query);
+      setState(() {
+        _searchResults = results;
+      });
+    } catch (e) {
+      print('Error fetching recipes: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Search Recipes',
-                border: OutlineInputBorder(),
-                suffixIcon: Icon(Icons.search),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: TextField(
+            onChanged: (value) {
+              searchQuery = value;
+            },
+            decoration: InputDecoration(
+              labelText: 'Search Recipes',
+              suffixIcon: IconButton(
+                icon: Icon(Icons.search),
+                onPressed: () {
+                  _searchRecipes(searchQuery);
+                },
               ),
             ),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.food_bank),
-                    title: Text('Recipe 1'),
-                    subtitle: Text('Delicious recipe description...'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.food_bank),
-                    title: Text('Recipe 2'),
-                    subtitle: Text('Tasty recipe description...'),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: _searchResults.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(_searchResults[index]['recipe']['label']),
+                subtitle: Text(_searchResults[index]['recipe']['source']),
+                leading: Image.network(
+                  _searchResults[index]['recipe']['image'],
+                  width: 50,
+                  height: 50,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-// Saved page implementation
 class SavedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            Text(
-              'Saved Recipes',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.bookmark),
-                    title: Text('Saved Recipe 1'),
-                    subtitle: Text('Saved recipe description...'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.bookmark),
-                    title: Text('Saved Recipe 2'),
-                    subtitle: Text('Favorite recipe description...'),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+    return Center(
+      child: Text(
+        'Saved Recipes',
+        style: TextStyle(fontSize: 24),
       ),
     );
   }
