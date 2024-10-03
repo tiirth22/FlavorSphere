@@ -75,8 +75,10 @@ class RecipeDetailPage extends StatelessWidget {
             if (recipe['url'] != null)
               GestureDetector(
                 onTap: () async {
-                  if (await canLaunchUrl(Uri.parse(recipe['url']))) {
-                    await launchUrl(Uri.parse(recipe['url']));
+                  final url = Uri.parse(recipe['url']); // Parse the URL
+                  if (await canLaunchUrl(url)) {
+                    // Launch URL in external browser
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Could not launch URL')),
