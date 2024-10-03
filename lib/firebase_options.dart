@@ -14,7 +14,7 @@ class DefaultFirebaseOptions {
         projectId: "flavorsphere-897b3",
         storageBucket: "flavorsphere-897b3.appspot.com",
         messagingSenderId: "274732030102",
-        appId: "1:274732030102:android:799f4a2271fc7427d1cab7",
+        appId: "1:274732030102:web:799f4a2271fc7427d1cab7", // Adjusted for web
         measurementId: "your-measurement-id",
       );
     }
@@ -28,5 +28,3 @@ class DefaultFirebaseOptions {
     );
   }
 }
-// TODO Implement this library.
-

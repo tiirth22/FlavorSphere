@@ -33,7 +33,19 @@ class SavedRecipesService {
     return [];
   }
 
-  // Optional: Clear all saved recipes
+  // Remove a recipe by its URI
+  Future<void> removeRecipe(String uri) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<Map<String, dynamic>> recipes = await getSavedRecipes();
+
+    // Filter out the recipe to be removed
+    recipes.removeWhere((recipe) => recipe['uri'] == uri);
+
+    // Save the updated list back to SharedPreferences
+    await prefs.setString('saved_recipes', json.encode(recipes));
+  }
+
+  // Clear all saved recipes (optional)
   Future<void> clearSavedRecipes() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('saved_recipes');

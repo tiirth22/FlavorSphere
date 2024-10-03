@@ -35,10 +35,14 @@ dependencies:
 
 
 
+  permission_handler: ^11.2.0 # Use the latest version
+
 
 
   shared_preferences: ^2.0.13
   path_provider: ^2.1.4 # Add this line (check for the latest version on pub.dev)
+
+  speech_to_text: ^7.0.0
 
   flutter_secure_storage: ^6.0.0
 

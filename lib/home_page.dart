@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 import 'api_service.dart'; // Import API Service for recipe search
 import 'search_page.dart'; // Importing SearchPage for recipe search
-import 'recipe_detail_page.dart'; // Import RecipeDetailPage for viewing recipe details
+
 import 'user_profile_page.dart'; // Import UserProfilePage
+
 import 'saved_page.dart' as SavedPageModule; // Import SavedPage with an alias to avoid conflict
 
 class HomePage extends StatefulWidget {
@@ -15,7 +16,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   final ApiService apiService = ApiService(); // Initialize ApiService for search
-  List<dynamic> _searchResults = [];
 
   static List<Widget> _widgetOptions = <Widget>[
     HomeContent(),  // Home content (Home page body)

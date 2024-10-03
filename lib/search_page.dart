@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt; // Import the speech_to_text package
+import 'package:permission_handler/permission_handler.dart'; // Import the permission_handler package
 import 'api_service.dart'; // Import your API service
 import 'recipe_detail_page.dart'; // Import your RecipeDetailPage
 
@@ -11,6 +13,56 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
   bool _isLoading = false;
+
+  // Mark _speech as late
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText(); // Initialize _speech here
+  }
+
+  // Method to handle speech input
+  Future<void> _startListening() async {
+    // Request microphone permission
+    final status = await Permission.microphone.request();
+
+    if (status.isGranted) {
+      bool available = await _speech.initialize(
+        onStatus: (status) => print('Speech Status: $status'),
+        onError: (error) => print('Speech Error: $error'),
+      );
+
+      if (available) {
+        setState(() {
+          _isListening = true;
+        });
+
+        _speech.listen(onResult: (result) {
+          setState(() {
+            _searchController.text = result.recognizedWords; // Update text field with recognized words
+          });
+        });
+      }
+    } else if (status.isDenied) {
+      // Handle the case when the permission is denied
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Microphone permission is denied.')),
+      );
+    } else if (status.isPermanentlyDenied) {
+      // Handle the case when the permission is permanently denied
+      openAppSettings(); // Open app settings to enable permission manually
+    }
+  }
+
+  void _stopListening() {
+    _speech.stop();
+    setState(() {
+      _isListening = false;
+    });
+  }
 
   void _searchRecipes() async {
     setState(() {
@@ -53,9 +105,18 @@ class _SearchPageState extends State<SearchPage> {
               decoration: InputDecoration(
                 labelText: 'Search for a recipe',
                 border: OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: _searchRecipes, // Trigger search on button press
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(_isListening ? Icons.mic_off : Icons.mic),
+                      onPressed: _isListening ? _stopListening : _startListening, // Trigger speech-to-text
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.search),
+                      onPressed: _searchRecipes, // Trigger search on button press
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -82,8 +143,7 @@ class _SearchPageState extends State<SearchPage> {
                             builder: (context) => RecipeDetailPage(
                               recipe: recipe,
                               onRecipeSaved: () {
-                                // You can implement any specific action you want to take when a recipe is saved.
-                                // For example, you could update the search results or refresh the page.
+                                // Implement any specific action you want to take when a recipe is saved.
                               },
                             ),
                           ),
