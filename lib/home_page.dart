@@ -2,6 +2,10 @@ import 'dart:ui'; // Import this for ImageFilter
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 import 'api_service.dart'; // Import API Service for recipe search
+import 'search_page.dart'; // Importing SearchPage for recipe search
+import 'recipe_detail_page.dart'; // Import RecipeDetailPage for viewing recipe details
+import 'user_profile_page.dart'; // Import UserProfilePage
+import 'saved_page.dart' as SavedPageModule; // Import SavedPage with an alias to avoid conflict
 
 class HomePage extends StatefulWidget {
   @override
@@ -11,30 +15,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   final ApiService apiService = ApiService(); // Initialize ApiService for search
-  String searchQuery = '';
   List<dynamic> _searchResults = [];
 
   static List<Widget> _widgetOptions = <Widget>[
     HomeContent(),  // Home content (Home page body)
-    SearchPage(),   // Search page
-    SavedPage(),    // Saved page
+    SearchPage(),   // Search page for searching recipes
+    SavedPageModule.SavedPage(),    // Use the aliased SavedPage from saved_page.dart
   ];
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-  }
-
-  void _searchRecipes(String query) async {
-    try {
-      final results = await apiService.getRecipes(query);
-      setState(() {
-        _searchResults = results;
-      });
-    } catch (e) {
-      print('Error fetching recipes: $e');
-    }
   }
 
   @override
@@ -67,8 +59,17 @@ class _HomePageState extends State<HomePage> {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              backgroundImage: AssetImage('assets/images/user.png'), // User profile image
+            child: GestureDetector(
+              onTap: () {
+                // Navigate to UserProfilePage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserProfilePage()),
+                );
+              },
+              child: CircleAvatar(
+                backgroundImage: AssetImage('assets/images/user.png'), // User profile image
+              ),
             ),
           ),
         ],
@@ -114,30 +115,45 @@ class HomeContent extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Breakfast button with blurred image
               BlurredButton(
                 imagePath: 'assets/images/breakfast.jpeg',
                 label: 'Breakfast',
                 onTap: () {
-                  // Handle Breakfast button tap
+                  // Navigate to SearchPage with meal type Breakfast
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchPage(), // Pass mealType if necessary
+                    ),
+                  );
                 },
               ),
-              SizedBox(height: 50),
-              // Lunch button with blurred image
+              SizedBox(height: 30), // Adjust spacing as needed
               BlurredButton(
                 imagePath: 'assets/images/lunch.jpeg',
                 label: 'Lunch',
                 onTap: () {
-                  // Handle Lunch button tap
+                  // Navigate to SearchPage with meal type Lunch
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchPage(), // Pass mealType if necessary
+                    ),
+                  );
                 },
               ),
-              SizedBox(height: 50),
-              // Dinner button with blurred image
+              SizedBox(height: 30), // Adjust spacing as needed
               BlurredButton(
                 imagePath: 'assets/images/dinner.jpg',
                 label: 'Dinner',
                 onTap: () {
-                  // Handle Dinner button tap
+                  // Navigate to SearchPage with meal type Dinner
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchPage(), // Pass mealType if necessary
+                    ),
+                  );
                 },
               ),
             ],
@@ -153,7 +169,7 @@ class BlurredButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const BlurredButton({
+  BlurredButton({
     required this.imagePath,
     required this.label,
     required this.onTap,
@@ -166,30 +182,30 @@ class BlurredButton extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Blurred image background
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12.0),
-            child: Image.asset(
-              imagePath,
-              width: MediaQuery.of(context).size.width * 0.8, // Adjust width
-              height: 100,
-              fit: BoxFit.cover,
-            ),
+          // Background image
+          Image.asset(
+            imagePath,
+            width: 250, // Reduced width
+            height: 150, // Reduced height
+            fit: BoxFit.cover,
           ),
-          // Blurred overlay with 40% blur effect
+          // Blurred effect
           ClipRRect(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(15.0),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.8,
-                height: 100,
-                color: Colors.black.withOpacity(0.4), // 40% opacity
+                width: 250, // Match the reduced width
+                height: 150, // Match the reduced height
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(15),
+                ),
                 alignment: Alignment.center,
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 24, // Reduced font size for better fit
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -198,81 +214,6 @@ class BlurredButton extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class SearchPage extends StatefulWidget {
-  @override
-  _SearchPageState createState() => _SearchPageState();
-}
-
-class _SearchPageState extends State<SearchPage> {
-  final ApiService apiService = ApiService();
-  String searchQuery = '';
-  List<dynamic> _searchResults = [];
-
-  void _searchRecipes(String query) async {
-    try {
-      final results = await apiService.getRecipes(query);
-      setState(() {
-        _searchResults = results;
-      });
-    } catch (e) {
-      print('Error fetching recipes: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            onChanged: (value) {
-              searchQuery = value;
-            },
-            decoration: InputDecoration(
-              labelText: 'Search Recipes',
-              suffixIcon: IconButton(
-                icon: Icon(Icons.search),
-                onPressed: () {
-                  _searchRecipes(searchQuery);
-                },
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: _searchResults.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(_searchResults[index]['recipe']['label']),
-                subtitle: Text(_searchResults[index]['recipe']['source']),
-                leading: Image.network(
-                  _searchResults[index]['recipe']['image'],
-                  width: 50,
-                  height: 50,
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class SavedPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Saved Recipes',
-        style: TextStyle(fontSize: 24),
       ),
     );
   }
