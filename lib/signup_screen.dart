@@ -9,13 +9,14 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final _auth = FirebaseAuth.instance;  // Firebase Authentication instance
+  final _auth = FirebaseAuth.instance; // Firebase Authentication instance
   bool _obscureTextPassword = true;
   bool _obscureTextConfirmPassword = true;
   String name = '';
   String email = '';
   String phone = '';
   String password = '';
+  bool _isLoading = false;  // Added loading state
 
   @override
   Widget build(BuildContext context) {
@@ -166,28 +167,57 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         ),
         SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () async {
-            try {
-              // Register the user using FirebaseAuth
-              await _auth.createUserWithEmailAndPassword(
-                email: email,
-                password: password,
-              );
-              // Navigate to HomePage after successful sign-up
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomePage()),
-              );
-            } catch (e) {
-              print(e);  // Handle error (e.g., show a message)
-            }
-          },
-          child: Text('Sign up'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+        _isLoading
+            ? CircularProgressIndicator()
+            : Container(
+          width: double.infinity,
+          height: 50,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(30),
+            gradient: LinearGradient(
+              colors: [Colors.orange, Colors.redAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: ElevatedButton(
+            onPressed: () async {
+              setState(() {
+                _isLoading = true;
+              });
+              try {
+                // Register the user using FirebaseAuth
+                await _auth.createUserWithEmailAndPassword(
+                  email: email,
+                  password: password,
+                );
+                // Navigate to HomePage after successful sign-up
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                );
+              } catch (e) {
+                print(e);  // Handle error (e.g., show a message)
+              } finally {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent, // Transparent background
+              shadowColor: Colors.transparent, // No shadow
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            child: Text(
+              'Sign up',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
