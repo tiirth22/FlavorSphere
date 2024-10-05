@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 import 'api_service.dart'; // Import API Service for recipe search
 import 'search_page.dart'; // Importing SearchPage for recipe search
-
 import 'user_profile_page.dart'; // Import UserProfilePage
-
 import 'saved_page.dart' as SavedPageModule; // Import SavedPage with an alias to avoid conflict
 
 class HomePage extends StatefulWidget {
@@ -128,7 +126,7 @@ class HomeContent extends StatelessWidget {
                   );
                 },
               ),
-              SizedBox(height: 30), // Adjust spacing as needed
+              SizedBox(height: 50), // Adjust spacing as needed
               BlurredButton(
                 imagePath: 'assets/images/lunch.jpeg',
                 label: 'Lunch',
@@ -142,7 +140,7 @@ class HomeContent extends StatelessWidget {
                   );
                 },
               ),
-              SizedBox(height: 30), // Adjust spacing as needed
+              SizedBox(height: 50), // Adjust spacing as needed
               BlurredButton(
                 imagePath: 'assets/images/dinner.jpg',
                 label: 'Dinner',
@@ -182,11 +180,11 @@ class BlurredButton extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Background image
+          // Background image with updated size
           Image.asset(
             imagePath,
-            width: 250, // Reduced width
-            height: 150, // Reduced height
+            width: 250, // Set width to 250
+            height: 100, // Set height to 100
             fit: BoxFit.cover,
           ),
           // Blurred effect
@@ -195,8 +193,8 @@ class BlurredButton extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                width: 250, // Match the reduced width
-                height: 150, // Match the reduced height
+                width: 250, // Match width to 250
+                height: 100, // Match height to 100
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(15),
@@ -205,7 +203,7 @@ class BlurredButton extends StatelessWidget {
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 24, // Reduced font size for better fit
+                    fontSize: 20, // Adjusted font size for better fit
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
