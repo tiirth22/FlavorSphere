@@ -8,14 +8,46 @@ class SavedPage extends StatefulWidget {
   SavedPageState createState() => SavedPageState();
 }
 
-class SavedPageState extends State<SavedPage> {
+class SavedPageState extends State<SavedPage> with SingleTickerProviderStateMixin {
   List<Map<String, dynamic>> _savedRecipes = [];
   final SavedRecipesService _savedRecipesService = SavedRecipesService();
+
+  late AnimationController _dustbinAnimationController;
+  late Animation<double> _dustbinScaleAnimation;
+  late Animation<double> _dustbinRotationAnimation;
 
   @override
   void initState() {
     super.initState();
     _loadSavedRecipes();
+
+    // Initialize animation controller
+    _dustbinAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    // Scale animation from 1.0 to 1.5 for the dustbin
+    _dustbinScaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
+      CurvedAnimation(
+        parent: _dustbinAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Rotation animation from 0 to π/4 (45 degrees) for the dustbin lid effect
+    _dustbinRotationAnimation = Tween<double>(begin: 0, end: 0.785398).animate(
+      CurvedAnimation(
+        parent: _dustbinAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _dustbinAnimationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSavedRecipes() async {
@@ -32,10 +64,21 @@ class SavedPageState extends State<SavedPage> {
     }
   }
 
-  Future<void> _removeRecipe(String uri) async {
+  Future<void> _removeRecipe(String uri, int index) async {
+    // Start the dustbin opening animation
+    await _dustbinAnimationController.forward();
+    // Reverse the animation after opening
+    await Future.delayed(const Duration(milliseconds: 300)); // Delay to show the open effect
+    _dustbinAnimationController.reverse();
+
+    // Simulate some delay for the animation to complete
+    await Future.delayed(const Duration(milliseconds: 300));
+
     try {
       await _savedRecipesService.removeRecipe(uri);
-      _loadSavedRecipes();
+      setState(() {
+        _savedRecipes.removeAt(index);
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Recipe removed!')),
       );
@@ -83,9 +126,20 @@ class SavedPageState extends State<SavedPage> {
               recipe['source'],
               overflow: TextOverflow.ellipsis,
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () => _confirmRemoveRecipe(recipe['uri']),
+            trailing: GestureDetector(
+              onTap: () => _confirmRemoveRecipe(recipe['uri'], index),
+              child: AnimatedBuilder(
+                animation: _dustbinAnimationController,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _dustbinScaleAnimation.value,
+                    child: Transform.rotate(
+                      angle: _dustbinRotationAnimation.value,
+                      child: const Icon(Icons.delete),
+                    ),
+                  );
+                },
+              ),
             ),
             onTap: () {
               Navigator.push(
@@ -138,7 +192,7 @@ class SavedPageState extends State<SavedPage> {
     );
   }
 
-  void _confirmRemoveRecipe(String uri) {
+  void _confirmRemoveRecipe(String uri, int index) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -156,7 +210,7 @@ class SavedPageState extends State<SavedPage> {
               child: const Text('Remove'),
               onPressed: () {
                 Navigator.of(context).pop();
-                _removeRecipe(uri);
+                _removeRecipe(uri, index);
               },
             ),
           ],

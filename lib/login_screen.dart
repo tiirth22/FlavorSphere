@@ -13,6 +13,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscureTextPassword = true;
   String email = '';
   String password = '';
+  bool _isLoading = false;  // Added to manage loading state
 
   @override
   Widget build(BuildContext context) {
@@ -127,27 +128,56 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () async {
-            try {
-              await _auth.signInWithEmailAndPassword(
-                email: email,
-                password: password,
-              );
-              // Navigate to HomePage on success
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomePage()),
-              );
-            } catch (e) {
-              print(e);  // Handle error (e.g., show a message)
-            }
-          },
-          child: Text('Login'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+        _isLoading
+            ? CircularProgressIndicator()
+            : Container(
+          width: double.infinity,
+          height: 50,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(30),
+            gradient: LinearGradient(
+              colors: [Colors.orange, Colors.redAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: ElevatedButton(
+            onPressed: () async {
+              setState(() {
+                _isLoading = true;
+              });
+              try {
+                await _auth.signInWithEmailAndPassword(
+                  email: email,
+                  password: password,
+                );
+                // Navigate to HomePage on success
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                );
+              } catch (e) {
+                print(e);  // Handle error (e.g., show a message)
+              } finally {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent, // Set transparent background
+              shadowColor: Colors.transparent, // Remove shadow
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            child: Text(
+              'Login',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),

@@ -3,28 +3,53 @@ import 'package:url_launcher/url_launcher.dart';
 import 'saved_recipes_service.dart';
 import 'dart:convert'; // Import for JSON encoding/decoding
 
-class RecipeDetailPage extends StatelessWidget {
+class RecipeDetailPage extends StatefulWidget {
   final Map<String, dynamic> recipe;
-  final SavedRecipesService savedRecipesService = SavedRecipesService(); // Create an instance of SavedRecipesService
   final VoidCallback onRecipeSaved; // Callback for when the recipe is saved
 
   RecipeDetailPage({required this.recipe, required this.onRecipeSaved});
 
   @override
+  _RecipeDetailPageState createState() => _RecipeDetailPageState();
+}
+
+class _RecipeDetailPageState extends State<RecipeDetailPage> {
+  final SavedRecipesService savedRecipesService = SavedRecipesService();
+  bool _isSaved = false; // To track the saved state
+  bool _isAnimating = false; // To track if the animation is playing
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(recipe['label']),
+        title: Text(widget.recipe['label']),
         actions: [
           IconButton(
-            icon: const Icon(Icons.save),
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return ScaleTransition(scale: animation, child: child);
+              },
+              child: _isSaved
+                  ? const Icon(Icons.favorite, key: ValueKey<bool>(true), color: Colors.red)
+                  : const Icon(Icons.save, key: ValueKey<bool>(false), color: Colors.black),
+            ),
             onPressed: () async {
-              // Log the recipe data before saving
-              print('Saving recipe: ${recipe.toString()}'); // Debugging line
+              setState(() {
+                _isAnimating = true;
+              });
+
               try {
                 // Save the recipe using shared_preferences
-                await savedRecipesService.saveRecipe(recipe['uri'], json.encode(recipe)); // Encode the recipe map
-                onRecipeSaved(); // Notify that the recipe is saved
+                await savedRecipesService.saveRecipe(
+                    widget.recipe['uri'], json.encode(widget.recipe)); // Encode the recipe map
+                widget.onRecipeSaved(); // Notify that the recipe is saved
+
+                // Show success and trigger animation
+                setState(() {
+                  _isSaved = true;
+                });
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Recipe saved!')),
                 );
@@ -33,6 +58,11 @@ class RecipeDetailPage extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Error saving recipe!')),
                 );
+              } finally {
+                // End animation after saving
+                setState(() {
+                  _isAnimating = false;
+                });
               }
             },
           ),
@@ -45,11 +75,11 @@ class RecipeDetailPage extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8.0),
-              child: Image.network(recipe['image'], width: double.infinity, fit: BoxFit.cover),
+              child: Image.network(widget.recipe['image'], width: double.infinity, fit: BoxFit.cover),
             ),
             const SizedBox(height: 16),
             Text(
-              'Source: ${recipe['source']}',
+              'Source: ${widget.recipe['source']}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -60,7 +90,7 @@ class RecipeDetailPage extends StatelessWidget {
             // Display ingredients
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: recipe['ingredientLines'].map<Widget>((ingredient) {
+              children: widget.recipe['ingredientLines'].map<Widget>((ingredient) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Text(ingredient),
@@ -72,10 +102,10 @@ class RecipeDetailPage extends StatelessWidget {
               'Instructions:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            if (recipe['url'] != null)
+            if (widget.recipe['url'] != null)
               GestureDetector(
                 onTap: () async {
-                  final url = Uri.parse(recipe['url']); // Parse the URL
+                  final url = Uri.parse(widget.recipe['url']); // Parse the URL
                   if (await canLaunchUrl(url)) {
                     // Launch URL in external browser
                     await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -101,10 +131,10 @@ class RecipeDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             // Nutritional Information
-            Text('Calories: ${recipe['calories']}'),
-            Text('Protein: ${recipe['protein']} g'),
-            Text('Fat: ${recipe['fat']} g'),
-            Text('Carbohydrates: ${recipe['carbohydrates']} g'),
+            Text('Calories: ${widget.recipe['calories']}'),
+            Text('Protein: ${widget.recipe['protein']} g'),
+            Text('Fat: ${widget.recipe['fat']} g'),
+            Text('Carbohydrates: ${widget.recipe['carbohydrates']} g'),
           ],
         ),
       ),

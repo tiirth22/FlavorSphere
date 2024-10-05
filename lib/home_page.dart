@@ -11,9 +11,48 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   final ApiService apiService = ApiService(); // Initialize ApiService for search
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize the animation controller
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2), // Duration of the animation
+    );
+
+    // Fade animation from 0 (transparent) to 1 (fully visible)
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeIn,
+    );
+
+    // Slide animation to move the text from left to right
+    _slideAnimation = Tween<Offset>(
+      begin: Offset(-1, 0), // Start position (off-screen to the left)
+      end: Offset(0, 0),    // End position (fully visible)
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    ));
+
+    // Start the animation when the HomePage is built
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose(); // Dispose the controller when the widget is destroyed
+    super.dispose();
+  }
 
   static List<Widget> _widgetOptions = <Widget>[
     HomeContent(),  // Home content (Home page body)
@@ -41,9 +80,16 @@ class _HomePageState extends State<HomePage> {
                 height: 40,
               ), // App logo on the top left
             ),
-            Text(
-              'Hello Chef!',
-              style: TextStyle(fontSize: 20, color: Colors.deepOrange),
+            // Wrap "Hello Chef!" in both FadeTransition and SlideTransition
+            FadeTransition(
+              opacity: _fadeAnimation, // Apply fade-in animation
+              child: SlideTransition(
+                position: _slideAnimation, // Apply slide-in animation
+                child: Text(
+                  'Hello Chef!',
+                  style: TextStyle(fontSize: 20, color: Colors.deepOrange),
+                ),
+              ),
             ),
           ],
         ),
