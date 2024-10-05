@@ -1,8 +1,34 @@
 import 'package:flutter/material.dart';
-import 'profile_page.dart'; // Import the new ProfilePage
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:firebase_auth/firebase_auth.dart';
 
-class UserProfilePage extends StatelessWidget {
-  final String userName = 'User Name'; // Example user name
+class UserProfilePage extends StatefulWidget {
+  @override
+  _UserProfilePageState createState() => _UserProfilePageState();
+}
+
+class _UserProfilePageState extends State<UserProfilePage> {
+  String userName = ''; // Variable to store user's name
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserName(); // Fetch the user's name when the page loads
+  }
+
+  void fetchUserName() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      setState(() {
+        userName = userDoc['name']; // Retrieve name from Firestore
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,13 +53,7 @@ class UserProfilePage extends StatelessWidget {
             SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                // Navigate to ProfilePage and pass the userName
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfilePage(userName: userName),
-                  ),
-                );
+                // Handle profile button press
               },
               child: Text('Profile'),
               style: ElevatedButton.styleFrom(
@@ -46,7 +66,7 @@ class UserProfilePage extends StatelessWidget {
                 // Handle log out
                 Navigator.pushNamedAndRemoveUntil(
                   context,
-                  '/welcome', // Replace with your welcome page route name
+                  '/welcome',
                       (Route<dynamic> route) => false,
                 );
               },

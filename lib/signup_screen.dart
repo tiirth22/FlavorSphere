@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'home_page.dart';
 import 'login_screen.dart';
 
@@ -9,14 +10,15 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final _auth = FirebaseAuth.instance; // Firebase Authentication instance
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance; // Firestore instance
   bool _obscureTextPassword = true;
   bool _obscureTextConfirmPassword = true;
   String name = '';
   String email = '';
   String phone = '';
   String password = '';
-  bool _isLoading = false;  // Added loading state
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +72,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) => LoginScreen()),
+                          MaterialPageRoute(builder: (context) => LoginScreen()),
                         );
                       },
                       child: Text(
@@ -187,17 +188,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
               });
               try {
                 // Register the user using FirebaseAuth
-                await _auth.createUserWithEmailAndPassword(
+                UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
                   email: email,
                   password: password,
                 );
+
+                // Store user data in Firestore
+                await _firestore.collection('users').doc(userCredential.user!.uid).set({
+                  'name': name,
+                  'email': email,
+                  'phone': phone,
+                });
+
                 // Navigate to HomePage after successful sign-up
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => HomePage()),
                 );
               } catch (e) {
-                print(e);  // Handle error (e.g., show a message)
+                print(e);  // Handle error
               } finally {
                 setState(() {
                   _isLoading = false;
@@ -205,8 +214,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent, // Transparent background
-              shadowColor: Colors.transparent, // No shadow
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
