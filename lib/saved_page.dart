@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'saved_recipes_service.dart';
-import 'recipe_detail_page.dart'; // Import RecipeDetailPage to navigate to it
-import 'search_page.dart'; // Import SearchPage to navigate to it
+import 'recipe_detail_page.dart';
+import 'search_page.dart';
 
 class SavedPage extends StatefulWidget {
   @override
@@ -35,7 +35,7 @@ class SavedPageState extends State<SavedPage> {
   Future<void> _removeRecipe(String uri) async {
     try {
       await _savedRecipesService.removeRecipe(uri);
-      _loadSavedRecipes(); // Reload the recipes after removing one
+      _loadSavedRecipes();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Recipe removed!')),
       );
@@ -55,30 +55,37 @@ class SavedPageState extends State<SavedPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadSavedRecipes, // Reload saved recipes manually
+            onPressed: _loadSavedRecipes,
           ),
         ],
       ),
       body: _savedRecipes.isEmpty
-          ? _buildEmptyState() // Add an empty state with illustration or button
+          ? _buildEmptyState()
           : ListView.builder(
         itemCount: _savedRecipes.length,
         itemBuilder: (context, index) {
           final recipe = _savedRecipes[index];
           return ListTile(
             leading: recipe['image'] != null
-                ? Image.network(
-              recipe['image'],
+                ? FadeInImage.assetNetwork(
+              placeholder: 'assets/placeholder.png',
+              image: recipe['image'],
               width: 50,
               height: 50,
               fit: BoxFit.cover,
             )
-                : const Icon(Icons.image), // Use const for static widgets
-            title: Text(recipe['label']),
-            subtitle: Text(recipe['source']),
+                : const Icon(Icons.image),
+            title: Text(
+              recipe['label'],
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              recipe['source'],
+              overflow: TextOverflow.ellipsis,
+            ),
             trailing: IconButton(
               icon: const Icon(Icons.delete),
-              onPressed: () => _confirmRemoveRecipe(recipe['uri']), // Confirm removal before deleting
+              onPressed: () => _confirmRemoveRecipe(recipe['uri']),
             ),
             onTap: () {
               Navigator.push(
@@ -87,7 +94,6 @@ class SavedPageState extends State<SavedPage> {
                   builder: (context) => RecipeDetailPage(
                     recipe: recipe,
                     onRecipeSaved: () {
-                      // Reload saved recipes when navigating back
                       _loadSavedRecipes();
                     },
                   ),
@@ -113,13 +119,16 @@ class SavedPageState extends State<SavedPage> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
             onPressed: () {
-              // Navigate to SearchPage when browsing for recipes
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => SearchPage(), // Change this to your SearchPage class
-                ),
+                MaterialPageRoute(builder: (context) => SearchPage()),
               );
             },
             child: const Text('Browse Recipes'),
@@ -129,7 +138,6 @@ class SavedPageState extends State<SavedPage> {
     );
   }
 
-  // Confirmation dialog before removing a recipe
   void _confirmRemoveRecipe(String uri) {
     showDialog(
       context: context,
@@ -148,7 +156,7 @@ class SavedPageState extends State<SavedPage> {
               child: const Text('Remove'),
               onPressed: () {
                 Navigator.of(context).pop();
-                _removeRecipe(uri); // Call removeRecipe when confirmed
+                _removeRecipe(uri);
               },
             ),
           ],
