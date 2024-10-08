@@ -1,62 +1,83 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   static const String appId = '9eda051f'; // Replace with your actual App ID
   static const String appKey = '6926eca6e3a840e7a4024f24d4650a56'; // Replace with your actual App Key
   static const String baseUrl = 'https://api.edamam.com/search';
 
-  // Fetch recipes and return the hits (list of recipes)
+  // Fetch recipes based on query with retry logic
   Future<List<dynamic>> getRecipes(String query) async {
-    final response = await http.get(
+    final response = await _retryHttpGet(
       Uri.parse('$baseUrl?q=$query&app_id=$appId&app_key=$appKey'),
+      retries: 3, // Retry the request up to 3 times if it fails
     );
 
-    if (response.statusCode == 200) {
+    if (response != null && response.statusCode == 200) {
       Map<String, dynamic> data = json.decode(response.body);
-      return data['hits']; // Return the list of recipes
+
+      // Ensure that each recipe has the correct image
+      return data['hits'].map((hit) {
+        var recipe = hit['recipe'];
+        return {
+          'label': recipe['label'],
+          'image': recipe['image'], // Ensure correct image mapping
+          'url': recipe['url'],
+          'ingredients': recipe['ingredients']
+        };
+      }).toList();
     } else {
       throw Exception('Failed to load recipes');
     }
   }
 
-  // Fetch ingredients for a specific recipe URI
-  List<dynamic> getIngredients(dynamic recipe) {
-    return recipe['ingredients'];
-  }
+  // Retry logic for handling network issues (helpful for login issues)
+  Future<http.Response?> _retryHttpGet(Uri uri, {int retries = 3}) async {
+    int attempt = 0;
+    http.Response? response;
 
-  // Save a recipe to local storage
-  Future<void> saveRecipe(dynamic recipe) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? savedRecipes = prefs.getStringList('savedRecipes') ?? [];
+    while (attempt < retries) {
+      try {
+        response = await http.get(uri);
 
-    // Check if the recipe already exists in the saved list
-    String recipeJson = jsonEncode(recipe);
-    if (!savedRecipes.contains(recipeJson)) {
-      savedRecipes.add(recipeJson);
-      await prefs.setStringList('savedRecipes', savedRecipes);
+        // Break the loop if the response is successful
+        if (response.statusCode == 200) {
+          break;
+        }
+      } catch (e) {
+        print('Attempt $attempt failed: $e');
+        attempt++;
+        if (attempt >= retries) {
+          throw Exception('Failed to connect after $retries attempts');
+        }
+      }
     }
+
+    return response;
   }
 
-  // Remove a recipe from saved list
-  Future<void> removeRecipe(dynamic recipe) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? savedRecipes = prefs.getStringList('savedRecipes') ?? [];
+  // Handle login logic with error handling
+  Future<bool> loginUser(String username, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://example.com/login'), // Use your actual login endpoint
+        body: jsonEncode({'username': username, 'password': password}),
+        headers: {'Content-Type': 'application/json'},
+      );
 
-    // Convert recipe to JSON and remove it
-    String recipeJson = jsonEncode(recipe);
-    savedRecipes.remove(recipeJson);
-    await prefs.setStringList('savedRecipes', savedRecipes);
-  }
-
-  // Fetch saved recipes from local storage
-  Future<List<dynamic>> getSavedRecipes() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? savedRecipes = prefs.getStringList('savedRecipes') ?? [];
-
-    // Decode each saved recipe back to its original form
-    List<dynamic> recipeList = savedRecipes.map((recipeJson) => jsonDecode(recipeJson)).toList();
-    return recipeList;
+      if (response.statusCode == 200) {
+        // Handle successful login
+        print('Login successful');
+        return true;
+      } else {
+        // Handle error response
+        print('Login failed with status: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      // Handle any network or other errors
+      print('Login error: $e');
+      return false;
+    }
   }
 }
