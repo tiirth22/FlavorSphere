@@ -8,7 +8,7 @@ class SavedPage extends StatefulWidget {
   SavedPageState createState() => SavedPageState();
 }
 
-class SavedPageState extends State<SavedPage> with SingleTickerProviderStateMixin {
+class SavedPageState extends State<SavedPage> with TickerProviderStateMixin {
   List<Map<String, dynamic>> _savedRecipes = [];
   final SavedRecipesService _savedRecipesService = SavedRecipesService();
 
