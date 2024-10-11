@@ -14,7 +14,6 @@ class _SearchPageState extends State<SearchPage> {
   List<dynamic> _searchResults = [];
   bool _isLoading = false;
 
-  // Mark _speech as late
   late stt.SpeechToText _speech;
   bool _isListening = false;
 
@@ -24,11 +23,8 @@ class _SearchPageState extends State<SearchPage> {
     _speech = stt.SpeechToText(); // Initialize _speech here
   }
 
-  // Method to handle speech input
   Future<void> _startListening() async {
-    // Request microphone permission
     final status = await Permission.microphone.request();
-
     if (status.isGranted) {
       bool available = await _speech.initialize(
         onStatus: (status) => print('Speech Status: $status'),
@@ -42,17 +38,15 @@ class _SearchPageState extends State<SearchPage> {
 
         _speech.listen(onResult: (result) {
           setState(() {
-            _searchController.text = result.recognizedWords; // Update text field with recognized words
+            _searchController.text = result.recognizedWords;
           });
         });
       }
     } else if (status.isDenied) {
-      // Handle the case when the permission is denied
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Microphone permission is denied.')),
       );
     } else if (status.isPermanentlyDenied) {
-      // Handle the case when the permission is permanently denied
       openAppSettings(); // Open app settings to enable permission manually
     }
   }
@@ -66,24 +60,22 @@ class _SearchPageState extends State<SearchPage> {
 
   void _searchRecipes() async {
     setState(() {
-      _isLoading = true; // Show loading indicator
-      _searchResults.clear(); // Clear previous search results
+      _isLoading = true;
+      _searchResults.clear();
     });
 
-    // Call your API service to fetch recipes
     ApiService apiService = ApiService();
     try {
       var results = await apiService.getRecipes(_searchController.text);
 
       setState(() {
-        _searchResults = results; // Update search results
-        _isLoading = false; // Hide loading indicator
+        _searchResults = results;
+        _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _isLoading = false; // Hide loading indicator
+        _isLoading = false;
       });
-      // Handle error (e.g., show a snackbar or an alert)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching recipes: $e')),
       );
@@ -96,70 +88,84 @@ class _SearchPageState extends State<SearchPage> {
       appBar: AppBar(
         title: Text('Search Recipes'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Search for a recipe',
-                border: OutlineInputBorder(),
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(_isListening ? Icons.mic_off : Icons.mic),
-                      onPressed: _isListening ? _stopListening : _startListening, // Trigger speech-to-text
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.search),
-                      onPressed: _searchRecipes, // Trigger search on button press
-                    ),
-                  ],
-                ),
+      body: Stack(
+        children: [
+          // Add the background image
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/background7.jpg'), // Path to your food image
+                fit: BoxFit.cover, // Make sure the image covers the entire screen
               ),
             ),
-            SizedBox(height: 20),
-            if (_isLoading)
-              CircularProgressIndicator(), // Show loading indicator
-            if (!_isLoading && _searchResults.isNotEmpty)
-              ListView.builder(
-                shrinkWrap: true, // Allow ListView to be contained in SingleChildScrollView
-                physics: NeverScrollableScrollPhysics(), // Disable scrolling
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
-                  final recipe = _searchResults[index]['recipe']; // Access the actual recipe data
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 10),
-                    child: ListTile(
-                      title: Text(recipe['label']), // Recipe name
-                      leading: Image.network(recipe['image']), // Recipe image
-                      onTap: () {
-                        // Navigate to RecipeDetailPage with the selected recipe
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RecipeDetailPage(
-                              recipe: recipe,
-                              onRecipeSaved: () {
-                                // Implement any specific action you want to take when a recipe is saved.
-                              },
-                            ),
-                          ),
-                        );
-                      },
+          ),
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'Search for a recipe',
+                    border: OutlineInputBorder(),
+                    fillColor: Colors.white.withOpacity(0.8), // Slight transparency for better readability
+                    filled: true,
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(_isListening ? Icons.mic_off : Icons.mic),
+                          onPressed: _isListening ? _stopListening : _startListening,
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.search),
+                          onPressed: _searchRecipes,
+                        ),
+                      ],
                     ),
-                  );
-                },
-              ),
-            if (!_isLoading && _searchResults.isEmpty)
-              Text(
-                'No results found.',
-                style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
-              ),
-          ],
-        ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                if (_isLoading)
+                  CircularProgressIndicator(),
+                if (!_isLoading && _searchResults.isNotEmpty)
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: _searchResults.length,
+                    itemBuilder: (context, index) {
+                      final recipe = _searchResults[index]['recipe'];
+                      return Card(
+                        margin: EdgeInsets.symmetric(vertical: 10),
+                        child: ListTile(
+                          title: Text(recipe['label']),
+                          leading: Image.network(recipe['image']),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RecipeDetailPage(
+                                  recipe: recipe,
+                                  onRecipeSaved: () {
+                                    // Implement any specific action when a recipe is saved.
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                if (!_isLoading && _searchResults.isEmpty)
+                  Text(
+                    'No results found.',
+                    style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
