@@ -1,6 +1,10 @@
-import 'dart:ui';
+import 'dart:ui'; // Import this for ImageFilter
 import 'package:flutter/material.dart';
-import 'user_profile_page.dart'; // Import the User Profile Page
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
+import 'api_service.dart'; // Import API Service for recipe search
+import 'search_page.dart'; // Importing SearchPage for recipe search
+import 'user_profile_page.dart'; // Import UserProfilePage
+import 'saved_page.dart' as SavedPageModule; // Import SavedPage with an alias to avoid conflict
 
 class HomePage extends StatefulWidget {
   @override
@@ -9,6 +13,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
+  final ApiService apiService = ApiService(); // Initialize ApiService for search
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -50,9 +55,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   static List<Widget> _widgetOptions = <Widget>[
-    HomeContent(), // Home content (current HomePage content)
-    SearchPage(),  // Search page
-    SavedPage(),   // Saved page
+    HomeContent(),  // Home content (Home page body)
+    SearchPage(),   // Search page for searching recipes
+    SavedPageModule.SavedPage(),    // Use the aliased SavedPage from saved_page.dart
   ];
 
   void _onItemTapped(int index) {
@@ -89,24 +94,31 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ],
         ),
         actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut(); // Sign out the user
+              Navigator.pushReplacementNamed(context, '/welcome'); // Redirect to login/signup screen
+            },
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: GestureDetector(
               onTap: () {
-                // Navigate to the UserProfilePage when the user icon is tapped
+                // Navigate to UserProfilePage
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => UserProfilePage()),
                 );
               },
               child: CircleAvatar(
-                backgroundImage: AssetImage('assets/images/user.png'), // User image on the top right
+                backgroundImage: AssetImage('assets/images/user.png'), // User profile image
               ),
             ),
           ),
         ],
       ),
-      body: _widgetOptions.elementAt(_selectedIndex), // Display the selected page
+      body: _widgetOptions.elementAt(_selectedIndex), // Display selected page
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -138,7 +150,7 @@ class HomeContent extends StatelessWidget {
         // Background image
         Positioned.fill(
           child: Image.asset(
-            'assets/images/background.jpg',
+            'assets/images/background6.jpg',
             fit: BoxFit.cover,
           ),
         ),
@@ -147,30 +159,45 @@ class HomeContent extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Breakfast button with blurred image
               BlurredButton(
                 imagePath: 'assets/images/breakfast.jpeg',
                 label: 'Breakfast',
                 onTap: () {
-                  // Handle Breakfast button tap
+                  // Navigate to SearchPage with meal type Breakfast
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchPage(), // Pass mealType if necessary
+                    ),
+                  );
                 },
               ),
-              SizedBox(height: 50),
-              // Lunch button with blurred image
+              SizedBox(height: 50), // Adjust spacing as needed
               BlurredButton(
                 imagePath: 'assets/images/lunch.jpeg',
                 label: 'Lunch',
                 onTap: () {
-                  // Handle Lunch button tap
+                  // Navigate to SearchPage with meal type Lunch
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchPage(), // Pass mealType if necessary
+                    ),
+                  );
                 },
               ),
-              SizedBox(height: 50),
-              // Dinner button with blurred image
+              SizedBox(height: 50), // Adjust spacing as needed
               BlurredButton(
                 imagePath: 'assets/images/dinner.jpg',
                 label: 'Dinner',
                 onTap: () {
-                  // Handle Dinner button tap
+                  // Navigate to SearchPage with meal type Dinner
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchPage(), // Pass mealType if necessary
+                    ),
+                  );
                 },
               ),
             ],
@@ -186,7 +213,7 @@ class BlurredButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const BlurredButton({
+  BlurredButton({
     required this.imagePath,
     required this.label,
     required this.onTap,
@@ -199,30 +226,30 @@ class BlurredButton extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Blurred image background
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12.0),
-            child: Image.asset(
-              imagePath,
-              width: MediaQuery.of(context).size.width * 0.8, // Adjust width to fit the screen
-              height: 100,
-              fit: BoxFit.cover,
-            ),
+          // Background image with updated size
+          Image.asset(
+            imagePath,
+            width: 250, // Set width to 250
+            height: 100, // Set height to 100
+            fit: BoxFit.cover,
           ),
-          // Blurred overlay with 40% blur effect
+          // Blurred effect
           ClipRRect(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(15.0),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.8, // Adjust width to fit the screen
-                height: 100,
-                color: Colors.black.withOpacity(0.4), // 40% blur effect
+                width: 250, // Match width to 250
+                height: 100, // Match height to 100
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(15),
+                ),
                 alignment: Alignment.center,
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 20, // Adjusted font size for better fit
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -231,83 +258,6 @@ class BlurredButton extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Search page implementation
-class SearchPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Search Recipes',
-                border: OutlineInputBorder(),
-                suffixIcon: Icon(Icons.search),
-              ),
-            ),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.food_bank),
-                    title: Text('Recipe 1'),
-                    subtitle: Text('Delicious recipe description...'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.food_bank),
-                    title: Text('Recipe 2'),
-                    subtitle: Text('Tasty recipe description...'),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Saved page implementation
-class SavedPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            Text(
-              'Saved Recipes',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.bookmark),
-                    title: Text('Saved Recipe 1'),
-                    subtitle: Text('Saved recipe description...'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.bookmark),
-                    title: Text('Saved Recipe 2'),
-                    subtitle: Text('Favorite recipe description...'),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

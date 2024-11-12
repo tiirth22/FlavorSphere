@@ -8,46 +8,16 @@ class SavedPage extends StatefulWidget {
   SavedPageState createState() => SavedPageState();
 }
 
-class SavedPageState extends State<SavedPage> with TickerProviderStateMixin {
+class SavedPageState extends State<SavedPage> with SingleTickerProviderStateMixin {
   List<Map<String, dynamic>> _savedRecipes = [];
   final SavedRecipesService _savedRecipesService = SavedRecipesService();
-
-  late AnimationController _dustbinAnimationController;
-  late Animation<double> _dustbinScaleAnimation;
-  late Animation<double> _dustbinRotationAnimation;
+  final List<AnimationController> _dustbinAnimationControllers = [];
+  final List<Animation<double>> _dustbinAnimations = [];
 
   @override
   void initState() {
     super.initState();
     _loadSavedRecipes();
-
-    // Initialize animation controller
-    _dustbinAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-
-    // Scale animation from 1.0 to 1.5 for the dustbin
-    _dustbinScaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
-      CurvedAnimation(
-        parent: _dustbinAnimationController,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    // Rotation animation from 0 to π/4 (45 degrees) for the dustbin lid effect
-    _dustbinRotationAnimation = Tween<double>(begin: 0, end: 0.785398).animate(
-      CurvedAnimation(
-        parent: _dustbinAnimationController,
-        curve: Curves.easeInOut,
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _dustbinAnimationController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadSavedRecipes() async {
@@ -55,6 +25,7 @@ class SavedPageState extends State<SavedPage> with TickerProviderStateMixin {
       final savedRecipes = await _savedRecipesService.getSavedRecipes();
       setState(() {
         _savedRecipes = savedRecipes;
+        _initializeDustbinAnimations(); // Initialize animations for each saved recipe
       });
     } catch (e) {
       print('Error loading saved recipes: $e');
@@ -64,12 +35,30 @@ class SavedPageState extends State<SavedPage> with TickerProviderStateMixin {
     }
   }
 
+  void _initializeDustbinAnimations() {
+    for (int i = 0; i < _savedRecipes.length; i++) {
+      final controller = AnimationController(
+        duration: const Duration(milliseconds: 600),
+        vsync: this,
+      );
+
+      final animation = Tween<double>(begin: 1.0, end: 1.5).animate(
+        CurvedAnimation(
+          parent: controller,
+          curve: Curves.easeInOut,
+        ),
+      );
+
+      _dustbinAnimationControllers.add(controller);
+      _dustbinAnimations.add(animation);
+    }
+  }
+
   Future<void> _removeRecipe(String uri, int index) async {
-    // Start the dustbin opening animation
-    await _dustbinAnimationController.forward();
-    // Reverse the animation after opening
+    // Start the dustbin animation
+    await _dustbinAnimationControllers[index].forward();
     await Future.delayed(const Duration(milliseconds: 300)); // Delay to show the open effect
-    _dustbinAnimationController.reverse();
+    await _dustbinAnimationControllers[index].reverse();
 
     // Simulate some delay for the animation to complete
     await Future.delayed(const Duration(milliseconds: 300));
@@ -91,6 +80,14 @@ class SavedPageState extends State<SavedPage> with TickerProviderStateMixin {
   }
 
   @override
+  void dispose() {
+    for (var controller in _dustbinAnimationControllers) {
+      controller.dispose(); // Dispose of each animation controller
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -108,6 +105,7 @@ class SavedPageState extends State<SavedPage> with TickerProviderStateMixin {
         itemCount: _savedRecipes.length,
         itemBuilder: (context, index) {
           final recipe = _savedRecipes[index];
+
           return ListTile(
             leading: recipe['image'] != null
                 ? FadeInImage.assetNetwork(
@@ -129,14 +127,11 @@ class SavedPageState extends State<SavedPage> with TickerProviderStateMixin {
             trailing: GestureDetector(
               onTap: () => _confirmRemoveRecipe(recipe['uri'], index),
               child: AnimatedBuilder(
-                animation: _dustbinAnimationController,
+                animation: _dustbinAnimations[index],
                 builder: (context, child) {
                   return Transform.scale(
-                    scale: _dustbinScaleAnimation.value,
-                    child: Transform.rotate(
-                      angle: _dustbinRotationAnimation.value,
-                      child: const Icon(Icons.delete),
-                    ),
+                    scale: _dustbinAnimations[index].value,
+                    child: const Icon(Icons.delete),
                   );
                 },
               ),

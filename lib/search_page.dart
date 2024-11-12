@@ -14,7 +14,7 @@ class _SearchPageState extends State<SearchPage> {
   List<dynamic> _searchResults = [];
   bool _isLoading = false;
 
-  // Mark _speech as late
+  // Initialize SpeechToText
   late stt.SpeechToText _speech;
   bool _isListening = false;
 
@@ -65,6 +65,14 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _searchRecipes() async {
+    // Validate input
+    if (_searchController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a search term.')),
+      );
+      return; // Exit early if no input
+    }
+
     setState(() {
       _isLoading = true; // Show loading indicator
       _searchResults.clear(); // Clear previous search results
@@ -129,14 +137,20 @@ class _SearchPageState extends State<SearchPage> {
                 physics: NeverScrollableScrollPhysics(), // Disable scrolling
                 itemCount: _searchResults.length,
                 itemBuilder: (context, index) {
-                  final recipe = _searchResults[index]['recipe']; // Access the actual recipe data
+                  final item = _searchResults[index];
+                  if (item == null || item['recipe'] == null) {
+                    return SizedBox.shrink(); // Skip this item if it's null
+                  }
+
+                  final recipe = item['recipe'];
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 10),
                     child: ListTile(
-                      title: Text(recipe['label']), // Recipe name
-                      leading: Image.network(recipe['image']), // Recipe image
+                      title: Text(recipe['label'] ?? 'Unknown Recipe'), // Recipe name with fallback
+                      leading: recipe['image'] != null
+                          ? Image.network(recipe['image'])
+                          : Icon(Icons.image_not_supported), // Fallback if image is null
                       onTap: () {
-                        // Navigate to RecipeDetailPage with the selected recipe
                         Navigator.push(
                           context,
                           MaterialPageRoute(
