@@ -8,7 +8,7 @@ class SavedPage extends StatefulWidget {
   SavedPageState createState() => SavedPageState();
 }
 
-class SavedPageState extends State<SavedPage> with SingleTickerProviderStateMixin {
+class SavedPageState extends State<SavedPage> with TickerProviderStateMixin {
   List<Map<String, dynamic>> _savedRecipes = [];
   final SavedRecipesService _savedRecipesService = SavedRecipesService();
   final List<AnimationController> _dustbinAnimationControllers = [];
@@ -36,6 +36,13 @@ class SavedPageState extends State<SavedPage> with SingleTickerProviderStateMixi
   }
 
   void _initializeDustbinAnimations() {
+    // Dispose of previous controllers before reinitializing
+    for (var controller in _dustbinAnimationControllers) {
+      controller.dispose();
+    }
+    _dustbinAnimationControllers.clear();
+    _dustbinAnimations.clear();
+
     for (int i = 0; i < _savedRecipes.length; i++) {
       final controller = AnimationController(
         duration: const Duration(milliseconds: 600),
@@ -55,18 +62,19 @@ class SavedPageState extends State<SavedPage> with SingleTickerProviderStateMixi
   }
 
   Future<void> _removeRecipe(String uri, int index) async {
-    // Start the dustbin animation
-    await _dustbinAnimationControllers[index].forward();
-    await Future.delayed(const Duration(milliseconds: 300)); // Delay to show the open effect
-    await _dustbinAnimationControllers[index].reverse();
-
-    // Simulate some delay for the animation to complete
-    await Future.delayed(const Duration(milliseconds: 300));
-
     try {
+      // Start the dustbin animation
+      await _dustbinAnimationControllers[index].forward();
+      await Future.delayed(const Duration(milliseconds: 300)); // Delay to show the open effect
+      await _dustbinAnimationControllers[index].reverse();
+
+      // Simulate some delay for the animation to complete
+      await Future.delayed(const Duration(milliseconds: 300));
+
       await _savedRecipesService.removeRecipe(uri);
       setState(() {
         _savedRecipes.removeAt(index);
+        _initializeDustbinAnimations(); // Reinitialize animations after removal
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Recipe removed!')),
