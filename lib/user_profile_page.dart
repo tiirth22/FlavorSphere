@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'profile_detail_page.dart';
 
 class UserProfilePage extends StatefulWidget {
   @override
@@ -8,25 +9,36 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
-  String userName = ''; // Variable to store user's name
+  String userName = '';
+  String userEmail = '';
+  String profileImage = 'assets/images/user.png'; // Default profile image
 
   @override
   void initState() {
     super.initState();
-    fetchUserName(); // Fetch the user's name when the page loads
+    fetchUserProfile();
   }
 
-  void fetchUserName() async {
+  Future<void> fetchUserProfile() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      try {
+        // Fetching email from Firebase Auth
+        userEmail = user.email ?? 'No Email';
 
-      setState(() {
-        userName = userDoc['name']; // Retrieve name from Firestore
-      });
+        // Fetching additional data from Firestore
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        setState(() {
+          userName = userDoc.exists ? userDoc['name'] ?? 'No Name' : user.displayName ?? 'No Name';
+          profileImage = userDoc.exists ? userDoc['profileImage'] ?? 'assets/images/user.png' : 'assets/images/user.png';
+        });
+      } catch (e) {
+        print('Error fetching user profile: $e');
+      }
     }
   }
 
@@ -34,7 +46,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Profile'),
+        title: const Text('User Profile'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -42,38 +54,55 @@ class _UserProfilePageState extends State<UserProfilePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircleAvatar(
-              backgroundImage: AssetImage('assets/images/user.png'),
+              backgroundImage: profileImage.startsWith('http')
+                  ? NetworkImage(profileImage) as ImageProvider
+                  : AssetImage(profileImage),
               radius: 50,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
               userName,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 10),
+            Text(
+              userEmail,
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+            const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                // Handle profile button press
+                // Navigate to Profile Details Page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfileDetailsPage(
+                      userName: userName,
+                      userEmail: userEmail,
+                      profileImage: profileImage,
+                    ),
+                  ),
+                );
               },
-              child: Text('Profile'),
+              child: const Text('View Full Profile'),
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Handle log out
+                FirebaseAuth.instance.signOut();
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   '/welcome',
                       (Route<dynamic> route) => false,
                 );
               },
-              child: Text('Log Out'),
+              child: const Text('Log Out'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
               ),
             ),
           ],

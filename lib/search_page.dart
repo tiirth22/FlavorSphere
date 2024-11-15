@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt; // Import the speech_to_text package
-import 'package:permission_handler/permission_handler.dart'; // Import the permission_handler package
-import 'api_service.dart'; // Import your API service
-import 'recipe_detail_page.dart'; // Import your RecipeDetailPage
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:permission_handler/permission_handler.dart';
+import 'api_service.dart';
+import 'recipe_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -13,6 +13,7 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
   bool _isLoading = false;
+  bool _hasSearched = false; // Track if a search was made
 
   // Initialize SpeechToText
   late stt.SpeechToText _speech;
@@ -21,14 +22,12 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
-    _speech = stt.SpeechToText(); // Initialize _speech here
+    _speech = stt.SpeechToText();
   }
 
   // Method to handle speech input
   Future<void> _startListening() async {
-    // Request microphone permission
     final status = await Permission.microphone.request();
-
     if (status.isGranted) {
       bool available = await _speech.initialize(
         onStatus: (status) => print('Speech Status: $status'),
@@ -42,18 +41,16 @@ class _SearchPageState extends State<SearchPage> {
 
         _speech.listen(onResult: (result) {
           setState(() {
-            _searchController.text = result.recognizedWords; // Update text field with recognized words
+            _searchController.text = result.recognizedWords;
           });
         });
       }
     } else if (status.isDenied) {
-      // Handle the case when the permission is denied
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Microphone permission is denied.')),
       );
     } else if (status.isPermanentlyDenied) {
-      // Handle the case when the permission is permanently denied
-      openAppSettings(); // Open app settings to enable permission manually
+      openAppSettings();
     }
   }
 
@@ -65,33 +62,31 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _searchRecipes() async {
-    // Validate input
     if (_searchController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please enter a search term.')),
       );
-      return; // Exit early if no input
+      return;
     }
 
     setState(() {
-      _isLoading = true; // Show loading indicator
-      _searchResults.clear(); // Clear previous search results
+      _isLoading = true;
+      _hasSearched = true; // Mark that a search has been made
+      _searchResults.clear();
     });
 
-    // Call your API service to fetch recipes
     ApiService apiService = ApiService();
     try {
       var results = await apiService.getRecipes(_searchController.text);
 
       setState(() {
-        _searchResults = results; // Update search results
-        _isLoading = false; // Hide loading indicator
+        _searchResults = results;
+        _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _isLoading = false; // Hide loading indicator
+        _isLoading = false;
       });
-      // Handle error (e.g., show a snackbar or an alert)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching recipes: $e')),
       );
@@ -118,11 +113,11 @@ class _SearchPageState extends State<SearchPage> {
                   children: [
                     IconButton(
                       icon: Icon(_isListening ? Icons.mic_off : Icons.mic),
-                      onPressed: _isListening ? _stopListening : _startListening, // Trigger speech-to-text
+                      onPressed: _isListening ? _stopListening : _startListening,
                     ),
                     IconButton(
                       icon: Icon(Icons.search),
-                      onPressed: _searchRecipes, // Trigger search on button press
+                      onPressed: _searchRecipes,
                     ),
                   ],
                 ),
@@ -130,35 +125,33 @@ class _SearchPageState extends State<SearchPage> {
             ),
             SizedBox(height: 20),
             if (_isLoading)
-              CircularProgressIndicator(), // Show loading indicator
+              CircularProgressIndicator(),
             if (!_isLoading && _searchResults.isNotEmpty)
               ListView.builder(
-                shrinkWrap: true, // Allow ListView to be contained in SingleChildScrollView
-                physics: NeverScrollableScrollPhysics(), // Disable scrolling
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
                 itemCount: _searchResults.length,
                 itemBuilder: (context, index) {
                   final item = _searchResults[index];
                   if (item == null || item['recipe'] == null) {
-                    return SizedBox.shrink(); // Skip this item if it's null
+                    return SizedBox.shrink();
                   }
 
                   final recipe = item['recipe'];
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 10),
                     child: ListTile(
-                      title: Text(recipe['label'] ?? 'Unknown Recipe'), // Recipe name with fallback
+                      title: Text(recipe['label'] ?? 'Unknown Recipe'),
                       leading: recipe['image'] != null
                           ? Image.network(recipe['image'])
-                          : Icon(Icons.image_not_supported), // Fallback if image is null
+                          : Icon(Icons.image_not_supported),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => RecipeDetailPage(
                               recipe: recipe,
-                              onRecipeSaved: () {
-                                // Implement any specific action you want to take when a recipe is saved.
-                              },
+                              onRecipeSaved: () {},
                             ),
                           ),
                         );
@@ -167,7 +160,8 @@ class _SearchPageState extends State<SearchPage> {
                   );
                 },
               ),
-            if (!_isLoading && _searchResults.isEmpty)
+            // Show "No results found" only if a search was performed
+            if (!_isLoading && _searchResults.isEmpty && _hasSearched)
               Text(
                 'No results found.',
                 style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
