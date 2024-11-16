@@ -1,10 +1,10 @@
-import 'dart:ui'; // Import this for ImageFilter
+import 'dart:ui'; // Import for ImageFilter
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
-import 'api_service.dart'; // Import API Service for recipe search
-import 'search_page.dart'; // Importing SearchPage for recipe search
-import 'user_profile_page.dart'; // Import UserProfilePage
-import 'saved_page.dart' as SavedPageModule; // Import SavedPage with an alias to avoid conflict
+import 'package:firebase_auth/firebase_auth.dart'; // Firebase Auth
+import 'api_service.dart'; // API Service for recipe search
+import 'search_page.dart'; // SearchPage for recipe search
+import 'user_profile_page.dart'; // UserProfilePage
+import 'saved_page.dart' as SavedPageModule; // SavedPage alias to avoid conflict
 
 class HomePage extends StatefulWidget {
   @override
@@ -23,41 +23,38 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
 
-    // Initialize the animation controller
+    // Animation setup
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 2), // Duration of the animation
+      duration: Duration(seconds: 2),
     );
 
-    // Fade animation from 0 (transparent) to 1 (fully visible)
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeIn,
     );
 
-    // Slide animation to move the text from left to right
     _slideAnimation = Tween<Offset>(
-      begin: Offset(-1, 0), // Start position (off-screen to the left)
-      end: Offset(0, 0),    // End position (fully visible)
+      begin: Offset(-1, 0),
+      end: Offset(0, 0),
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeOut,
     ));
 
-    // Start the animation when the HomePage is built
     _animationController.forward();
   }
 
   @override
   void dispose() {
-    _animationController.dispose(); // Dispose the controller when the widget is destroyed
+    _animationController.dispose();
     super.dispose();
   }
 
   static List<Widget> _widgetOptions = <Widget>[
-    HomeContent(),  // Home content (Home page body)
-    SearchPage(),   // Search page for searching recipes
-    SavedPageModule.SavedPage(),    // Use the aliased SavedPage from saved_page.dart
+    HomeContent(),
+    SearchPage(),
+    SavedPageModule.SavedPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -78,16 +75,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 'assets/images/logo.png',
                 width: 40,
                 height: 40,
-              ), // App logo on the top left
+              ),
             ),
-            // Wrap "Hello Chef!" in both FadeTransition and SlideTransition
             FadeTransition(
-              opacity: _fadeAnimation, // Apply fade-in animation
+              opacity: _fadeAnimation,
               child: SlideTransition(
-                position: _slideAnimation, // Apply slide-in animation
+                position: _slideAnimation,
                 child: Text(
                   'Hello Chef!',
-                  style: TextStyle(fontSize: 20, color: Colors.deepOrange),
+                  style: TextStyle(fontSize: 24, color: Colors.deepOrange),
                 ),
               ),
             ),
@@ -97,28 +93,27 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
-              await FirebaseAuth.instance.signOut(); // Sign out the user
-              Navigator.pushReplacementNamed(context, '/welcome'); // Redirect to login/signup screen
+              await FirebaseAuth.instance.signOut();
+              Navigator.pushReplacementNamed(context, '/welcome');
             },
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: GestureDetector(
               onTap: () {
-                // Navigate to UserProfilePage
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => UserProfilePage()),
                 );
               },
               child: CircleAvatar(
-                backgroundImage: AssetImage('assets/images/user.png'), // User profile image
+                backgroundImage: AssetImage('assets/images/user.png'),
               ),
             ),
           ),
         ],
       ),
-      body: _widgetOptions.elementAt(_selectedIndex), // Display selected page
+      body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -147,56 +142,45 @@ class HomeContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Background image
         Positioned.fill(
           child: Image.asset(
             'assets/images/background6.jpg',
             fit: BoxFit.cover,
           ),
         ),
-        // Main content
         Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              BlurredButton(
+              CategoryButton(
                 imagePath: 'assets/images/breakfast.jpeg',
                 label: 'Breakfast',
                 onTap: () {
-                  // Navigate to SearchPage with meal type Breakfast
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => SearchPage(), // Pass mealType if necessary
-                    ),
+                    MaterialPageRoute(builder: (context) => SearchPage()),
                   );
                 },
               ),
-              SizedBox(height: 50), // Adjust spacing as needed
-              BlurredButton(
+              SizedBox(height: 15),
+              CategoryButton(
                 imagePath: 'assets/images/lunch.jpeg',
                 label: 'Lunch',
                 onTap: () {
-                  // Navigate to SearchPage with meal type Lunch
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => SearchPage(), // Pass mealType if necessary
-                    ),
+                    MaterialPageRoute(builder: (context) => SearchPage()),
                   );
                 },
               ),
-              SizedBox(height: 50), // Adjust spacing as needed
-              BlurredButton(
+              SizedBox(height: 15),
+              CategoryButton(
                 imagePath: 'assets/images/dinner.jpg',
                 label: 'Dinner',
                 onTap: () {
-                  // Navigate to SearchPage with meal type Dinner
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => SearchPage(), // Pass mealType if necessary
-                    ),
+                    MaterialPageRoute(builder: (context) => SearchPage()),
                   );
                 },
               ),
@@ -208,12 +192,12 @@ class HomeContent extends StatelessWidget {
   }
 }
 
-class BlurredButton extends StatelessWidget {
+class CategoryButton extends StatelessWidget {
   final String imagePath;
   final String label;
   final VoidCallback onTap;
 
-  BlurredButton({
+  CategoryButton({
     required this.imagePath,
     required this.label,
     required this.onTap,
@@ -223,41 +207,60 @@ class BlurredButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Background image with updated size
-          Image.asset(
-            imagePath,
-            width: 250, // Set width to 250
-            height: 100, // Set height to 100
-            fit: BoxFit.cover,
+      child: Container(
+        width: 300, // Moderate button width
+        height: 160, // Moderate button height
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25), // Rounded corners for a soft look
+          gradient: LinearGradient(
+            colors: [Colors.orange.shade400, Colors.deepOrange], // Smooth gradient effect
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          // Blurred effect
-          ClipRRect(
-            borderRadius: BorderRadius.circular(15.0),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                width: 250, // Match width to 250
-                height: 100, // Match height to 100
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.4),
+              blurRadius: 15,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(25),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Image.asset(
+                imagePath,
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
+              ),
+              Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(15),
+                  color: Colors.black.withOpacity(0.5), // Overlay for better text visibility
+                  borderRadius: BorderRadius.circular(25),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 20, // Adjusted font size for better fit
-                    color: Colors.white,
+                    fontSize: 26, // Slightly larger font size for prominence
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 12.0,
+                        color: Colors.black.withOpacity(0.6),
+                        offset: Offset(5, 5),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

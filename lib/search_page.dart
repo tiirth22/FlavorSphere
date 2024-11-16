@@ -3,6 +3,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 import 'api_service.dart';
 import 'recipe_detail_page.dart';
+import 'dart:async';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -19,10 +20,21 @@ class _SearchPageState extends State<SearchPage> {
   late stt.SpeechToText _speech;
   bool _isListening = false;
 
+  // Timer for debouncing search input
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _speech.stop();
+    _debounce?.cancel();
+    super.dispose();
   }
 
   // Method to handle speech input
@@ -61,11 +73,21 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
+  // Debounced search method
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _searchRecipes();
+    });
+  }
+
+  // Method to search recipes
   void _searchRecipes() async {
     if (_searchController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a search term.')),
-      );
+      setState(() {
+        _searchResults.clear();
+        _hasSearched = false;
+      });
       return;
     }
 
@@ -115,13 +137,10 @@ class _SearchPageState extends State<SearchPage> {
                       icon: Icon(_isListening ? Icons.mic_off : Icons.mic),
                       onPressed: _isListening ? _stopListening : _startListening,
                     ),
-                    IconButton(
-                      icon: Icon(Icons.search),
-                      onPressed: _searchRecipes,
-                    ),
                   ],
                 ),
               ),
+              onChanged: (value) => _onSearchChanged(),
             ),
             SizedBox(height: 20),
             if (_isLoading)
